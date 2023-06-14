@@ -12,7 +12,7 @@ app.use('/cards', require('./routes/cards'));
 
 app.use((req, res, next) => {
     req.user = {
-      _id: '64886e5791d0452423ee7152'
+      _id: '64886e5791d0452423ee7152',
     };
   
     next();

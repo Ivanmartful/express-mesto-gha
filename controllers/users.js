@@ -25,9 +25,8 @@ module.exports.createUser = (req, res) => {
 };
 
 module.exports.getUserById = (req, res) => {
-    const { userId } = req.params;
     User
-        .findById(userId)
+        .findById(req.params.id)
         .orFail()
         .then((user) => res.status(ok).send(user))
         .catch((err) => {
@@ -38,8 +37,9 @@ module.exports.getUserById = (req, res) => {
             } 
             if (err.message === 'DocumentNotFoundError') {
                 return res.status(notFound).send({ message: 'Пользователь не найден'})
+            } else {
+                return res.status(serverError).send({ message: err.message })
             }
-            return res.status(serverError).send({ message: err.message })
         })
 };
 
@@ -47,6 +47,7 @@ module.exports.updateUser = (req, res) => {
     const { name, about } = req.body;
     User
         .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+        .orFail()
         .then((user) => res.status(ok).send(user))
         .catch((err) => {
             if (err.name === 'ValidationError' || err.name === 'CastError') {
