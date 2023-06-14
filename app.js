@@ -10,6 +10,14 @@ app.use(bodyParser.json());
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.use((req, res, next) => {
+    req.user = {
+      _id: '64886e5791d0452423ee7152'
+    };
+  
+    next();
+  });
+
 mongoose
     .connect('mongodb://127.0.0.1:27017/mestodbn')
     .then(() => {
