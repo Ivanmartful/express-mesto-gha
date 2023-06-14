@@ -28,6 +28,7 @@ module.exports.getUserById = (req, res) => {
     const { userId } = req.params;
     User
         .findById(userId)
+        .orFail()
         .then((user) => res.status(ok).send(user))
         .catch((err) => {
             if (err.name === 'CastError') {
@@ -35,7 +36,7 @@ module.exports.getUserById = (req, res) => {
                     .status(error)
                     .send({ message: 'Некорректные данные' })
             } 
-            if (err.message === 'NotFound') {
+            if (err.message === 'DocumentNotFoundError') {
                 return res.status(notFound).send({ message: 'Пользователь не найден'})
             }
             return res.status(serverError).send({ message: err.message })
@@ -52,7 +53,7 @@ module.exports.updateUser = (req, res) => {
                  return res
                     .status(error)
                     .send({ message: 'Некорректные данные' })
-            } else if (err.name === 'NotFound') {
+            } else if (err.name === 'DocumentNotFoundError') {
                  return res.status(notFound).send({ message: 'Пользователь не найден' })
             } else {
                 res.status(serverError).send({ message: err.message })
@@ -66,11 +67,11 @@ module.exports.updateAvatar = (req, res) => {
         .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
         .then((user) => res.status(ok).send(user))
         .catch((err) => {
-            if (err.name === 'ValidationError') {
+            if (err.name === 'ValidationError' || err.name === 'CastError') {
                 res
                     .status(error)
                     .send({ message: 'Некорректные данные' })
-            } else if (err.name === 'CastError') {
+            } else if (err.name === 'DocumentNotFoundError') {
                 res.status(notFound).send({ message: 'Пользователь не найден' })
             } else {
                 res.status(serverError).send({ message: err.message })

@@ -15,7 +15,7 @@ module.exports.createCard = (req, res) => {
         .create({ name, link, owner })
         .then((card) => res.status(ok).send(card))
         .catch((err) => {
-            if (err.name === 'validationError') {
+            if (err.name === 'validationError' || err.name === 'CastError') {
                 res.status(error).send({ message: 'Некорректные данные' })
             } else {
                 res.status(serverError).send({ message: err.message })
@@ -28,10 +28,17 @@ module.exports.deleteCard = (req, res) => {
     const owner = req.user._id;
     Card
         .findByIdAndRemove({ cardId })
-        .then((card) => res.status(ok).send(card))
+        .then((card) => {
+            if (!card) {
+                return res
+                    .status(notFound)
+                    .send({ message: 'Карточка не найдена' })
+            }
+            return res.status(ok).send(card)
+        })
         .catch((err) => {
             if (err.name === 'CastError') {
-                res.status(notFound).send({ message: 'Карточка не найдена' })
+                res.status(error).send({ message: 'Некорректные данные' })
             } else {
                 res.status(serverError).send({ message: err.message })
             }
@@ -43,12 +50,13 @@ module.exports.likeCard = (req, res) => {
         .findByIdAndUpdate(req.params.cardId,
             { $addToSet: { likes: req.user._id } },
             { new: true })
+        .orFail()
         .then((card) => res.status(ok).send(card))
         .catch((err) => {
-            if (err.name === 'validationError') {
-                res.status(error).send({ message: 'Некорректные данные' })
-            } else if (err.name === 'CastError') {
+            if (err.name === 'DocumentNotFoundError') {
                 res.status(notFound).send({ message: 'Карточка не найдена' })
+            } else if (err.name === 'CastError') {
+                res.status(error).send({ message: 'Некорректные данные' })
             }
             else {
                 res.status(serverError).send({ message: err.message })
@@ -61,12 +69,13 @@ module.exports.dislikeCard = (req, res) => {
         .findByIdAndUpdate(req.params.cardId,
             { $pull: { likes: req.user._id } },
             { new: true })
+        .orFail
         .then((card) => res.status(ok).send(card))
         .catch((err) => {
-            if (err.name === 'validationError') {
-                res.status(error).send({ message: 'Некорректные данные' })
-            } else if (err.name === 'CastError') {
+            if (err.name === 'DocumentNotFoundError') {
                 res.status(notFound).send({ message: 'Карточка не найдена' })
+            } else if (err.name === 'CastError') {
+                res.status(error).send({ message: 'Некорректные данные' })
             }
             else {
                 res.status(serverError).send({ message: err.message })
