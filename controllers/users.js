@@ -37,7 +37,7 @@ module.exports.getUserById = (req, res) => {
           .status(error)
           .send({ message: 'Некорректные данные' });
       }
-      if (err.name === 'DocumentNotFoundError') {
+      if (err.message === 'DocumentNotFoundError') {
         return res.status(notFound).send({ message: 'Пользователь не найден' });
       }
       return res.status(serverError).send({ message: err.message });
@@ -55,7 +55,7 @@ module.exports.updateUser = (req, res) => {
         return res
           .status(error)
           .send({ message: 'Некорректные данные' });
-      } if (err.name === 'DocumentNotFoundError') {
+      } if (err.message === 'DocumentNotFoundError') {
         return res.status(notFound).send({ message: 'Пользователь не найден' });
       }
       return res.status(serverError).send({ message: err.message });
@@ -73,7 +73,7 @@ module.exports.updateAvatar = (req, res) => {
         res
           .status(error)
           .send({ message: 'Некорректные данные' });
-      } else if (err.name === 'DocumentNotFoundError') {
+      } else if (err.message === 'DocumentNotFoundError') {
         res.status(notFound).send({ message: 'Пользователь не найден' });
       } else {
         res.status(serverError).send({ message: err.message });

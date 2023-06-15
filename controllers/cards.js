@@ -55,7 +55,7 @@ module.exports.likeCard = (req, res) => {
     .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(ok).send(card))
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
+      if (err.message === 'DocumentNotFoundError') {
         res.status(notFound).send({ message: 'Карточка не найдена' });
       } else if (err.name === 'CastError') {
         res.status(error).send({ message: 'Некорректные данные' });
@@ -75,7 +75,7 @@ module.exports.dislikeCard = (req, res) => {
     .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(ok).send(card))
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
+      if (err.message === 'DocumentNotFoundError') {
         res.status(notFound).send({ message: 'Карточка не найдена' });
       } else if (err.name === 'CastError') {
         res.status(error).send({ message: 'Некорректные данные' });
