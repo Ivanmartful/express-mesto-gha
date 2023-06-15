@@ -7,7 +7,7 @@ const { notFound } = require('../utils/constants');
 router.use('/users', userRouter);
 router.use('/cards', cardRouter);
 router.use('/*', (req, res) => {
-    res.status(notFound).send({ message: '404 not found' })
+  res.status(notFound).send({ message: '404 not found' });
 });
 
 module.exports = router;
