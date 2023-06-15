@@ -52,7 +52,7 @@ module.exports.likeCard = (req, res) => {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail()
+    .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(ok).send(card))
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {
@@ -72,7 +72,7 @@ module.exports.dislikeCard = (req, res) => {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail()
+    .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(ok).send(card))
     .catch((err) => {
       if (err.name === 'DocumentNotFoundError') {

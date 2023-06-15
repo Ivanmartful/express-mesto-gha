@@ -29,7 +29,7 @@ module.exports.createUser = (req, res) => {
 module.exports.getUserById = (req, res) => {
   User
     .findById(req.params.id)
-    .orFail()
+    .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(ok).send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -48,7 +48,7 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail()
+    .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(ok).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -66,7 +66,7 @@ module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User
     .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail()
+    .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(ok).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
