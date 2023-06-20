@@ -49,7 +49,7 @@ module.exports.validationUpdateAvatar = celebrate({
 
 module.exports.validationGetUserById = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required().custom(validationId),
+    id: Joi.string().required().custom(validationId),
   }),
 });
 
