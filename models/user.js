@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const validator = require('validator');
+
+const { NotAuthorizedError } = require('../errors/errors');
+const { NOT_AUTHORIZED_MESSAGE } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -41,5 +45,21 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
+
+userSchema.statics.findUserByCredentials = (email, password) => this.findOne({ email }).select('+password')
+  .then((user) => {
+    if (!user) {
+      return Promise.reject(new NotAuthorizedError(NOT_AUTHORIZED_MESSAGE));
+    }
+
+    return bcrypt.compare(password, user.password)
+      .then((matched) => {
+        if (!matched) {
+          return Promise.reject(new NotAuthorizedError(NOT_AUTHORIZED_MESSAGE));
+        }
+
+        return user;
+      });
+  });
 
 module.exports = mongoose.model('user', userSchema);
