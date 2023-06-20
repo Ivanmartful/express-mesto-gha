@@ -24,7 +24,7 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
       res.send({ token });
@@ -36,6 +36,7 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
+  if (!password) throw new BadRequestError(BAD_REQUEST_MESSAGE);
   bcrypt.hash(password, 10)
     .then((hash) => {
       User
@@ -49,15 +50,14 @@ module.exports.createUser = (req, res, next) => {
           avatar: user.avatar,
           email: user.email,
         }))
-        // eslint-disable-next-line consistent-return
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            return next(new BadRequestError(BAD_REQUEST_MESSAGE));
+            next(new BadRequestError(BAD_REQUEST_MESSAGE));
+          } else if (err.code === 11000) {
+            next(new UserExistsError(USER_EXISTS_MESSAGE));
+          } else {
+            next(err);
           }
-          if (err.code === 11000) {
-            return next(new UserExistsError(USER_EXISTS_MESSAGE));
-          }
-          next(err);
         });
     })
     .catch(next);

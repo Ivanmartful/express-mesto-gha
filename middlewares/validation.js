@@ -1,11 +1,10 @@
 const { celebrate, Joi } = require('celebrate');
-const isUrl = require('validator');
 const { BadRequestError } = require('../errors/errors');
 const { BAD_REQUEST_MESSAGE } = require('../utils/constants');
 
 const validationUrl = (url) => {
-  const validateUrl = isUrl(url);
-  if (validateUrl) {
+  // eslint-disable-next-line no-useless-escape
+  if (url.match(/http(s)?:\/\/(ww.)?[a-z0-9\.\-]+\/[a-z0-9\.\-_~:\/?#\[\]@!$&'()*+,;=]+/gi)) {
     return url;
   }
   throw new BadRequestError(BAD_REQUEST_MESSAGE);
