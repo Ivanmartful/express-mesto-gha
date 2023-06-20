@@ -49,14 +49,15 @@ module.exports.createUser = (req, res, next) => {
           avatar: user.avatar,
           email: user.email,
         }))
+        // eslint-disable-next-line consistent-return
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            next(new BadRequestError(BAD_REQUEST_MESSAGE));
-          } else if (err.code === 11000) {
-            next(new UserExistsError(USER_EXISTS_MESSAGE));
-          } else {
-            next(err);
+            return next(new BadRequestError(BAD_REQUEST_MESSAGE));
           }
+          if (err.code === 11000) {
+            return next(new UserExistsError(USER_EXISTS_MESSAGE));
+          }
+          next(err);
         });
     })
     .catch(next);
