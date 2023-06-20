@@ -1,82 +1,131 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
-  ok, created, error, notFound, serverError,
+  OK,
+  CREATED,
+  BAD_REQUEST_MESSAGE,
+  NOT_FOUND_MESSAGE,
+  USER_EXISTS_MESSAGE,
 } = require('../utils/constants');
 
-module.exports.getUsers = (req, res) => {
+const {
+  BadRequestError,
+  NotFoundError,
+  UserExistsError,
+} = require('../errors/errors');
+
+module.exports.getUsers = (req, res, next) => {
   User
     .find({})
     .then((users) => res.send(users))
-    .catch((err) => res.status(serverError).send({ message: err.message }));
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User
-    .create({ name, about, avatar })
-    .then((user) => res.status(created).send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res
-          .status(error)
-          .send({ message: 'Некорректные данные', err: err.message, stack: err.stack });
-      } else {
-        res.status(serverError).semd({ message: err.message });
-      }
-    });
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
+      res.send({ token });
+    })
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User
+        .create({
+          name, about, avatar, email, password: hash,
+        })
+        .then((user) => res.status(CREATED).send({
+          _id: user._id,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        }))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            next(new BadRequestError(BAD_REQUEST_MESSAGE));
+          } else if (err.code === 11000) {
+            next(new UserExistsError(USER_EXISTS_MESSAGE));
+          } else {
+            next(err);
+          }
+        });
+    })
+    .catch(next);
+};
+
+module.exports.getUserById = (req, res, next) => {
   User
     .findById(req.params.id)
-    .orFail(new Error('DocumentNotFoundError'))
-    .then((user) => res.status(ok).send(user))
+    .orFail(() => {
+      throw new NotFoundError(NOT_FOUND_MESSAGE);
+    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
-          .status(error)
-          .send({ message: 'Некорректные данные' });
+        next(new BadRequestError(BAD_REQUEST_MESSAGE));
+        return;
       }
-      if (err.message === 'DocumentNotFoundError') {
-        return res.status(notFound).send({ message: 'Пользователь не найден' });
-      }
-      return res.status(serverError).send({ message: err.message });
+      next(err);
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(new Error('DocumentNotFoundError'))
-    .then((user) => res.status(ok).send(user))
+    .orFail(() => {
+      throw new NotFoundError(NOT_FOUND_MESSAGE);
+    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(error)
-          .send({ message: 'Некорректные данные' });
-      } if (err.message === 'DocumentNotFoundError') {
-        return res.status(notFound).send({ message: 'Пользователь не найден' });
+        next(new BadRequestError(BAD_REQUEST_MESSAGE));
+      } else {
+        next(err);
       }
-      return res.status(serverError).send({ message: err.message });
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User
     .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(new Error('DocumentNotFoundError'))
-    .then((user) => res.status(ok).send(user))
+    .orFail(() => {
+      throw new NotFoundError(NOT_FOUND_MESSAGE);
+    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(error)
-          .send({ message: 'Некорректные данные' });
-      } else if (err.message === 'DocumentNotFoundError') {
-        res.status(notFound).send({ message: 'Пользователь не найден' });
+        next(new BadRequestError(BAD_REQUEST_MESSAGE));
       } else {
-        res.status(serverError).send({ message: err.message });
+        next(err);
+      }
+    });
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User
+    .findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(NOT_FOUND_MESSAGE);
+      }
+      res.status(OK).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError(BAD_REQUEST_MESSAGE));
+      } else {
+        next(err);
       }
     });
 };
