@@ -40,18 +40,20 @@ module.exports.deleteCard = (req, res, next) => {
       throw new NotFoundError(NOT_FOUND_MESSAGE);
     })
     .then((card) => {
-      if (!card.owner.equals(req.user._id)) {
-        return next(new ForbiddenError(FORBIDDEN_MESSAGE));
-      }
-      return card.remove().then(() => res.status(OK).send(card));
+      if (card.owner.equals(req.user._id)) {
+        Card
+          .findByIdAndRemove(req.params.cardId)
+          .then((newCard) => res.status(OK).send(newCard))
+          .catch((err) => {
+            if (err.name === 'CastError') {
+              next(new BadRequestError(BAD_REQUEST_MESSAGE));
+            } else {
+              next(err);
+            }
+          });
+      } else next(new ForbiddenError(FORBIDDEN_MESSAGE));
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError(BAD_REQUEST_MESSAGE));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
 module.exports.likeCard = (req, res, next) => {

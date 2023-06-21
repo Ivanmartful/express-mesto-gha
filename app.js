@@ -5,7 +5,7 @@ const { errors } = require('celebrate');
 const router = require('./routes/router');
 const auth = require('./middlewares/auth');
 const { createUser, login } = require('./controllers/users');
-const NotFoundError = require('./errors/NotFoundError');
+const { NotFoundError } = require('./errors/NotFoundError');
 const { SERVER_ERROR_MESSAGE, NOT_FOUND_MESSAGE } = require('./utils/constants');
 
 const {
