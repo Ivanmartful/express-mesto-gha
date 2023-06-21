@@ -53,7 +53,13 @@ module.exports.deleteCard = (req, res, next) => {
           });
       } else next(new ForbiddenError(FORBIDDEN_MESSAGE));
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError(BAD_REQUEST_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.likeCard = (req, res, next) => {
