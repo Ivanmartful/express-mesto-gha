@@ -1,5 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
-const BadRequestError = require('../errors/BadRequestError');
+const { BadRequestError } = require('../errors/BadRequestError');
 const { BAD_REQUEST_MESSAGE } = require('../utils/constants');
 
 const validationUrl = (url) => {

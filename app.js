@@ -21,11 +21,11 @@ app.use(express.json());
 app.post('/signup', validationCreateUser, createUser);
 app.post('/signin', validationLogin, login);
 app.use(auth);
-app.use(helmet());
 app.use(router);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(NOT_FOUND_MESSAGE));
 });
+app.use(helmet());
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
