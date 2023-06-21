@@ -7,11 +7,9 @@ const {
   NOT_FOUND_MESSAGE,
 } = require('../utils/constants');
 
-const {
-  BadRequestError,
-  NotFoundError,
-  ForbiddenError,
-} = require('../errors/errors');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 module.exports.getCards = (req, res, next) => {
   Card
@@ -37,17 +35,15 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card
-    .findByIdAndRemove(req.params.cardId)
+    .findById(req.params.cardId)
     .orFail(() => {
       throw new NotFoundError(NOT_FOUND_MESSAGE);
     })
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError(NOT_FOUND_MESSAGE);
-      } if (!card.owner.equals(req.user._id)) {
+      if (!card.owner.equals(req.user._id)) {
         return next(new ForbiddenError(FORBIDDEN_MESSAGE));
       }
-      return res.status(OK).send(card);
+      return card.remove().then(() => res.status(OK).send(card));
     })
     .catch((err) => {
       if (err.name === 'CastError') {

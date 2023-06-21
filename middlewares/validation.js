@@ -1,18 +1,11 @@
 const { celebrate, Joi } = require('celebrate');
-const { BadRequestError } = require('../errors/errors');
+const BadRequestError = require('../errors/BadRequestError');
 const { BAD_REQUEST_MESSAGE } = require('../utils/constants');
 
 const validationUrl = (url) => {
   // eslint-disable-next-line no-useless-escape
   if (url.match(/http(s)?:\/\/(ww.)?[a-z0-9\.\-]+\/[a-z0-9\.\-_~:\/?#\[\]@!$&'()*+,;=]+/gi)) {
     return url;
-  }
-  throw new BadRequestError(BAD_REQUEST_MESSAGE);
-};
-
-const validationId = (id) => {
-  if (id.match(/[a-z][0-9]+/gi)) {
-    return id;
   }
   throw new BadRequestError(BAD_REQUEST_MESSAGE);
 };
@@ -49,7 +42,7 @@ module.exports.validationUpdateAvatar = celebrate({
 
 module.exports.validationGetUserById = celebrate({
   params: Joi.object().keys({
-    id: Joi.string().required().custom(validationId),
+    id: Joi.string().required().hex(),
   }),
 });
 
@@ -62,6 +55,6 @@ module.exports.validationCreateCard = celebrate({
 
 module.exports.validationGetCardById = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().custom(validationId),
+    cardId: Joi.string().required().hex(),
   }),
 });

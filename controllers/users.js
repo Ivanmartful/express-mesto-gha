@@ -9,11 +9,9 @@ const {
   USER_EXISTS_MESSAGE,
 } = require('../utils/constants');
 
-const {
-  BadRequestError,
-  NotFoundError,
-  UserExistsError,
-} = require('../errors/errors');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const UserExistsError = require('../errors/UserExistsError');
 
 module.exports.getUsers = (req, res, next) => {
   User

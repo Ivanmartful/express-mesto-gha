@@ -5,7 +5,7 @@ const { errors } = require('celebrate');
 const router = require('./routes/router');
 const auth = require('./middlewares/auth');
 const { createUser, login } = require('./controllers/users');
-const { NotFoundError } = require('./errors/errors');
+const NotFoundError = require('./errors/NotFoundError');
 const { SERVER_ERROR_MESSAGE, NOT_FOUND_MESSAGE } = require('./utils/constants');
 
 const {
@@ -18,6 +18,7 @@ const app = express();
 
 app.use(express.json());
 
+app.use(helmet());
 app.post('/signup', validationCreateUser, createUser);
 app.post('/signin', validationLogin, login);
 app.use(auth);
@@ -25,7 +26,6 @@ app.use(router);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(NOT_FOUND_MESSAGE));
 });
-app.use(helmet());
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
